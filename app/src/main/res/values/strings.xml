@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">CT OOB Demo App</string>
+    <string name="permission_rationale">All the time location permission required for core functionality</string>
+
+
+    <!--Gender Drop box-->
+    <string name="gender_prompt">Gender</string>
+    <string-array name="gender_box">
+        <item>M</item>
+        <item>F</item>
+        <item>Others</item>
+    </string-array>
+
+</resources>

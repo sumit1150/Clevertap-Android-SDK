@@ -1,0 +1,55 @@
+<!Doctype html>
+<html>
+<head>
+  <!--  <script type="text/javascript">
+     var clevertap = {event:[], profile:[],region : 'eu1', account:[], onUserLogin:[], notifications:[], privacy:[]};
+ // replace with the CLEVERTAP_ACCOUNT_ID with the actual ACCOUNT ID value from your Dashboard -> Settings page
+clevertap.account.push({"id": "W44-Z4K-K65Z"});
+clevertap.privacy.push({optOut: false}); //set the flag to true, if the user of the device opts out of sharing their data
+clevertap.privacy.push({useIP: false}); //set the flag to true, if the user agrees to share their IP data
+ (function () {
+		 var wzrk = document.createElement('script');
+		 wzrk.type = 'text/javascript';
+		 wzrk.async = true;
+		 wzrk.src = ('https:' == document.location.protocol ? 'https://d2r1yp2w7bby2u.cloudfront.net' : 'http://static.clevertap.com') + '/js/a.js';
+		 var s = document.getElementsByTagName('script')[0];
+		 s.parentNode.insertBefore(wzrk, s);
+  })();
+</script>-->
+  <h4> Clevertap Java Script Interface Demo</h4>
+  <script>
+
+        function raiseCTWebviewEvent()
+        {
+            var props = {"Action": "Successful", "Type": 'Webview'};
+            if (window.CleverTap)
+            {
+
+
+                CleverTap.pushEvent("CTWebviewEvent",JSON.stringify(props));
+                document.getElementById("demo").innerHTML = "CT Webview event raised";
+            }else
+            {
+            document.getElementById("demo").innerHTML = "CT Webview event Not raised";
+            }
+        }
+     /*   function raiseCTWebEvent()
+        {
+            var props = {"Action": "Successful", "Type": 'Webview'};
+            if (window.CleverTap)
+            {
+                CleverTap.pushEvent("CTWebviewEvent",JSON.stringify(props));
+                document.getElementById("demo").innerHTML = "CT Webview event raised";
+            }
+        }
+        function raiseCTWebEvent(){
+        document.getElementById("demo").innerHTML = "CT Web event raised";
+        }*/
+    </script>
+</head>
+<body>
+<button id="ctButton1" onclick="raiseCTWebviewEvent()">Click to raise CT Webview Event</button><br>
+<!--<button id="ctButton2" onclick="raiseCTWebEvent()">Click to raise CT Web Event</button><br>-->
+<p id="demo">Results</p>
+</body>
+</html>
