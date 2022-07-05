@@ -1,1 +1,1 @@
-# WebsiteTextReader
+# CT Demo App
