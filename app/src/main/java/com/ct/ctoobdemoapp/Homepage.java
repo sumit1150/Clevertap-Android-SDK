@@ -46,7 +46,7 @@ public class Homepage extends AppCompatActivity implements CTInboxListener, Inbo
     Boolean featureflagValue;
     private static final String Tag3="Homepage";
     private static final String Tag4="ProdConfigObj";
-    HashMap customEventProp,movieProp;
+    HashMap customEventProp,movieProp,nativeDisplayEventProp;
     ImageView imageView;
     String m1;
     ArrayList<CTInboxMessage> str_getAppInboxMessages;
@@ -78,11 +78,15 @@ public class Homepage extends AppCompatActivity implements CTInboxListener, Inbo
 
         cleverTapAPI=CleverTapAPI.getDefaultInstance(this);
 
-            assert cleverTapAPI != null;
-            //App Inbox listener
-            cleverTapAPI.setCTNotificationInboxListener(this);
-            //Initialize the inbox and wait for callbacks on overridden methods
-            cleverTapAPI.initializeInbox();
+
+            if(cleverTapAPI!=null){
+                //App Inbox listener
+                cleverTapAPI.setCTNotificationInboxListener(this);
+                //Initialize the inbox and wait for callbacks on overridden methods
+                cleverTapAPI.initializeInbox();
+            }
+
+
             //Log.d(Tag5, String.valueOf(cleverTapAPI.getAllInboxMessages()));
             //Toast.makeText(getApplicationContext(), "App inbox initilized", Toast.LENGTH_SHORT).show();
 
@@ -95,11 +99,11 @@ public class Homepage extends AppCompatActivity implements CTInboxListener, Inbo
 
             //To get all the app inbox message
             //Array list to get all app inbox messages
-            str_getAppInboxMessages= new ArrayList<>();
+           // str_getAppInboxMessages= new ArrayList<>();
             //str_getAppInboxMessages= cleverTapAPI.getAllInboxMessages();
             //  Log.d(Tag5, String.valueOf(cleverTapAPI.getAllInboxMessages()));
-            Log.d(Tag6, String.valueOf(cleverTapAPI.getInboxMessageCount()));
-            Toast.makeText(getApplicationContext(), "Total Inbox Count: "+cleverTapAPI.getInboxMessageCount(), Toast.LENGTH_SHORT).show();
+            //Log.d(Tag6, String.valueOf(cleverTapAPI.getInboxMessageCount()));
+            //Toast.makeText(getApplicationContext(), "Total Inbox Count: "+cleverTapAPI.getInboxMessageCount(), Toast.LENGTH_SHORT).show();
 
         //Native display listener
         CleverTapAPI.getDefaultInstance(this).setDisplayUnitListener(this);
@@ -174,7 +178,11 @@ public class Homepage extends AppCompatActivity implements CTInboxListener, Inbo
         ctNativeDisplayEvent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                CleverTapAPI.getDefaultInstance(getApplicationContext()).pushEvent("CT_Native_Display_Event");
+                nativeDisplayEventProp = new HashMap<String, Object>();
+                nativeDisplayEventProp.put("BuyerPrice", 200);
+                nativeDisplayEventProp.put("Item_name","Porsche 911 Carrera");
+                nativeDisplayEventProp.put("image_url","https://db7hsdc8829us.cloudfront.net/dist/1510923264/i/6e7270cf071944109245a48cbe466c06.jpeg");
+                CleverTapAPI.getDefaultInstance(getApplicationContext()).pushEvent("CT_Native_Display_Event",nativeDisplayEventProp);
             }
         });
 
@@ -189,7 +197,7 @@ public class Homepage extends AppCompatActivity implements CTInboxListener, Inbo
             public void onClick(View view) {
                 customEventProp = new HashMap<String, Object>();
                 customEventProp.put("Name", "Nike Shoes");
-                customEventProp.put("Price", 4000);
+                customEventProp.put("P1", 4000);
                 customEventProp.put("Action","successful");
                 cleverTapAPI.pushEvent("ct_Custom_Event",customEventProp);
             }
@@ -222,11 +230,32 @@ public class Homepage extends AppCompatActivity implements CTInboxListener, Inbo
 
     @Override
     public void inboxDidInitialize() {
-        Log.d(Tag5, String.valueOf(cleverTapAPI.getAllInboxMessages()));
+        //Log.d(Tag5, String.valueOf(cleverTapAPI.getAllInboxMessages()));
         app_inbox_id.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                cleverTapAPI.showAppInbox();
+                ArrayList<String> tabs = new ArrayList<>();
+                tabs.add("Promotions");
+                tabs.add("Offers");//We support upto 2 tabs only. Additional tabs will be ignored
+
+                CTInboxStyleConfig styleConfig = new CTInboxStyleConfig();
+                styleConfig.setFirstTabTitle("First Tab");
+                styleConfig.setTabs(tabs);//Do not use this if you don't want to use tabs
+                styleConfig.setTabBackgroundColor("#FF0000");
+                styleConfig.setSelectedTabIndicatorColor("#0000FF");
+                styleConfig.setSelectedTabColor("#0000FF");
+                styleConfig.setUnselectedTabColor("#FFFFFF");
+                styleConfig.setBackButtonColor("#FF0000");
+                styleConfig.setNavBarTitleColor("#FF0000");
+                styleConfig.setNavBarTitle("MY INBOX");
+                styleConfig.setNavBarColor("#FFFFFF");
+                styleConfig.setInboxBackgroundColor("#ADD8E6");
+                if(cleverTapAPI!=null) {
+                    cleverTapAPI.showAppInbox(styleConfig);
+                }
+                else{
+                    Toast.makeText(Homepage.this, "CT ID not found", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -238,7 +267,7 @@ public class Homepage extends AppCompatActivity implements CTInboxListener, Inbo
     public void inboxMessagesDidUpdate() {
       //  Log.d(Tag5, String.valueOf(cleverTapAPI.getAllInboxMessages()));
        // Log.d(Tag7, String.valueOf(cleverTapAPI.getInboxMessageForId("bed6d31")));
-        Toast.makeText(getApplicationContext(), "App Inbox updated, Unread count: "+cleverTapAPI.getInboxMessageUnreadCount()+", Total count: "+cleverTapAPI.getInboxMessageCount(), Toast.LENGTH_SHORT).show();
+       // Toast.makeText(getApplicationContext(), "App Inbox updated, Unread count: "+cleverTapAPI.getInboxMessageUnreadCount()+", Total count: "+cleverTapAPI.getInboxMessageCount(), Toast.LENGTH_SHORT).show();
        // Log.d(Tag5, String.valueOf(cleverTapAPI.getAllInboxMessages()));
 
     }
@@ -272,6 +301,19 @@ public class Homepage extends AppCompatActivity implements CTInboxListener, Inbo
             cleverTapAPI.pushDisplayUnitClickedEventForID(unit.getUnitID());
             Log.d(Tag3,unit.toString());
             Toast.makeText(getApplicationContext(), "Units: "+unit.getContents().toString(), Toast.LENGTH_SHORT).show();
+        }
+        else if(unit.getCustomExtras().containsKey("Nativekey1") && unit.getCustomExtras().containsValue("Blue")){
+
+            nativeDisplayResult.setBackgroundColor(Color.parseColor("#0000FF"));
+            nativeDisplayResult.setText("Native Display Results: Key Found, Details:"+unit.getCustomExtras().toString());
+            cleverTapAPI.pushDisplayUnitViewedEventForID(unit.getUnitID());
+            cleverTapAPI.pushDisplayUnitClickedEventForID(unit.getUnitID());
+            Log.d(Tag3,unit.toString());
+            Toast.makeText(getApplicationContext(), "Units: "+unit.getContents().toString(), Toast.LENGTH_SHORT).show();
+        }
+        else if(unit.getCustomExtras().containsKey("custom_data") && unit.getCustomExtras().containsValue("110")){
+            Toast.makeText(getApplicationContext(), "API Native display gets run", Toast.LENGTH_SHORT).show();
+
         }
         //else if(){
           // nativeDisplayResult.setBackgroundColor(Color.parseColor("#00FF00"));

@@ -40,32 +40,44 @@ import com.clevertap.android.geofence.interfaces.CTLocationUpdatesListener;
 import com.clevertap.android.sdk.CTInboxListener;
 import com.clevertap.android.sdk.CleverTapAPI;
 import com.clevertap.android.sdk.InAppNotificationButtonListener;
+import com.clevertap.android.sdk.InboxMessageListener;
+import com.clevertap.android.sdk.inbox.CTInboxMessage;
 import com.clevertap.android.sdk.interfaces.OnInitCleverTapIDListener;
 import com.clevertap.android.sdk.pushnotification.CTPushNotificationListener;
+import com.clevertap.android.sdk.pushnotification.PushConstants;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.messaging.FirebaseMessaging;
-import com.segment.analytics.Analytics;
+//import com.segment.analytics.Analytics;
+import com.xiaomi.mipush.sdk.MiPushClient;
 
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
+import com.appsflyer.AppsFlyerLib;
 
-public class MainActivity extends AppCompatActivity implements CTPushNotificationListener, InAppNotificationButtonListener, CTInboxListener {
+
+
+
+public class MainActivity extends AppCompatActivity implements CTPushNotificationListener, InAppNotificationButtonListener, CTInboxListener,InboxMessageListener { //, InboxMessageListener lind numbr 659 and 43
 
     CleverTapAPI cleverTapAPI;
     private static final String Tag1="MainActivity";
-    private static final String Tag2="Sumit";
+    private static final String Tag50="Notipayload";
+    private static final String Tag2="Boss";
     private static final String Tag10="InAppPayload";
+
     String clevertapID="";
     //UI Declaration
     EditText UserName,Password;
-    TextView sign_up_link,pushTestProfile,skip;
+    TextView sign_up_link,pushTestProfile,skip,notificationpayload;
     Button loginNow;
     //UI Variables
     String username;
@@ -81,8 +93,13 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
     int i=0;
     private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 34;//For geofencing
     private FirebaseAnalytics mFirebaseAnalytics;//this is for real time uninatall tracking
-    //Analytics analytics;
 
+    //String Seg_name;
+    HashMap<String, Object> SegmentPropUpdate;
+    String userProperty;
+
+    //Appsflayer dev key
+   // TN6PNVCuJE7iKmHyaaAvAC
 
     @Override
     protected void onStart() {
@@ -91,17 +108,59 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
 
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     @SuppressLint("WrongThread")
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //analytics = new Analytics.Builder(getApplicationContext(), "LNhrPMl1KhxgW80G4tpcpEvVRRcNd3if").build();
+        // analytics = new Analytics.Builder(getApplicationContext(), "LNhrPMl1KhxgW80G4tpcpEvVRRcNd3if").trackApplicationLifecycleEvents().recordScreenViews().build();
+        //Analytics.setSingletonInstance(analytics);
+
+        //Xiaomi
+      //  CleverTapAPI.enableXiaomiPushOn(PushConstants.XIAOMI_MIUI_DEVICES);
+        //MiPushClient.registerPush(getApplicationContext(),"2882303761520478796","5382047861796");
+        //MiPushClient.registerPush(this, "2882303761520478796","5382047861796");
+        // String xiaomiToken = MiPushClient.getRegId(getApplicationContext());
+        //String xiaomiRegion = MiPushClient.getAppRegion(getApplicationContext());
+        //CleverTapAPI.getDefaultInstance(getApplicationContext()).pushXiaomiRegistrationId(xiaomiToken,xiaomiRegion,true);
 
 
         //Initilization of clevertap SDK
         cleverTapAPI=CleverTapAPI.getDefaultInstance(getApplicationContext());
+
+        //AppsFlayer Initilization
+        AppsFlyerLib.getInstance().start(this);
+        AppsFlyerLib.getInstance().setDebugLog(true);
+
+        //Appsflayer<>CleverTap Integration
+
+        cleverTapAPI.getCleverTapID(new OnInitCleverTapIDListener() {
+            @Override
+            public void onInitCleverTapID(final String cleverTapID) {
+                // Callback on main thread
+                AppsFlyerLib.getInstance().setCustomerUserId(cleverTapID);
+            }
+        });
+
+        //Appsflayer Custom Event
+        Map<String, Object> eventValues = new HashMap<String, Object>();
+        eventValues.put("Price", 1234.56);
+        eventValues.put("value","1234567");
+        AppsFlyerLib.getInstance().logEvent(getApplicationContext(),"Appsflayer_event", eventValues);
+
+
+
+
+        //Custom Handling code ******************************************
+        //String fcmRegId= String.valueOf(FirebaseMessaging.getInstance().getToken());
+       //String fcmRegId = FirebaseInstanceId.getInstance().getToken();
+       //String fcmRegId= String.valueOf(FirebaseMessaging.getInstance().getToken());
+       //Log.d(Tag2, String.valueOf(fcmRegId));
+       // Toast.makeText(getApplicationContext(), "Firebase Token "+fcmRegId, Toast.LENGTH_SHORT).show();
+       //cleverTapAPI.pushFcmRegistrationId(fcmRegId,true);
+      //  cleverTapAPI.pushFcmRegistrationId(String.valueOf(FirebaseMessaging.getInstance().getToken()),true);
+        //******************************************************************
 
        // Analytics.setSingletonInstance(analytics);
 
@@ -111,7 +170,7 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
         CleverTapAPI.setDebugLevel(CleverTapAPI.LogLevel.DEBUG);
         //Get Shared preference
         //Get Clevertap ID
-        clevertapID=cleverTapAPI.getCleverTapID();
+       // clevertapID=cleverTapAPI.getCleverTapID();
         Toast.makeText(getApplicationContext(), "Clevertap ID"+clevertapID, Toast.LENGTH_SHORT).show();
         //Log.d(Tag1,clevertapID);
         //Creating a Notification Channel
@@ -127,6 +186,9 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
         Log.d(Tag1,action);
         Log.d(Tag1, String.valueOf(data));*/
 
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        Uri data1 = intent.getData();
 
 
         if(cleverTapAPI!=null) {
@@ -139,6 +201,19 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
            // cleverTapAPI.setCTNotificationInboxListener(this);
             //Initialize the inbox and wait for callbacks on overridden methods
            // cleverTapAPI.initializeInbox();
+            
+            //Xiaomi
+
+            //HashMap<String, Object> new_data=new HashMap<String,Object>();
+            //new_data.put("a","{first_touc_finding_method_aggregate = Search; first_touch_finding_method_granular = HP - Query; last_touch_finding_method_aggregate = Reco - OTC_PDP; last_touch_finding_method_granular = OTC_PDP - FBT; listing_id = ; product_id = 183037; }, { first_touch_finding_method_aggregate = Search; first_touch_finding_method_granular = HP - Query; last_touch_finding_method_aggre,first_touch_finding_method_granular = HP - Query; llast_touch_finding_method_granular = OTC_PDP - FBT; listing_id = ; product_id = 183037;}");
+            //new_data.put("b","{first_touc_finding_method_aggregate = Search; first_touch_finding_method_granular = HP - Query; last_touch_finding_method_aggregate = Reco - OTC_PDP; last_touch_finding_method_granular = OTC_PDP - FBT; listing_id = ; product_id = 183037; }, { first_touch_finding_method_aggregate = Search; first_touch_finding_method_granular = HP - Query; last_touch_finding_method_aggre,first_touch_finding_method_granular = HP - Query; llast_touch_finding_method_granular = OTC_PDP - FBT; listing_id = ; product_id = 1234567890121;Sumit_Kumar_sharma}");
+
+           //cleverTapAPI.pushEvent("Login_master", new_data);
+            //System.out.println("YourCleverTapID: "+cleverTapAPI.getCleverTapID().toString());
+
+            cleverTapAPI.pushEvent("WebViewTransition");
+            //cleverTapAPI.pushEvent("Web View Transition");
+
         }
         //Custom Push Notification handling
         //Step 1: Send FCM Tokan to the Clevertap
@@ -156,9 +231,24 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
         loginNow=findViewById(R.id.loginNow);
         pushTestProfile=findViewById(R.id.testProfile);
         skip=findViewById(R.id.skip);
+        notificationpayload=findViewById(R.id.notificationpayload);
         //Profile update
         profileUpdate = new HashMap<String, Object>();
 
+
+        //App Personalization feature implementation
+        cleverTapAPI.enablePersonalization();
+        //userProperty=cleverTapAPI.getProperty("Boss").toString();
+        //Toast.makeText(getApplicationContext(), "userProp Value: "+userProperty, Toast.LENGTH_SHORT).show();
+       // String userProperty = (String) cleverTapAPI.getProperty("TestIntValue");
+        //Log.d(Tag2,userProperty);
+
+        //Multiple value profiles
+
+        ArrayList<String> newStuff = new ArrayList<String>();
+        newStuff.add("socks");
+        newStuff.add("scarf");
+        cleverTapAPI.addMultiValuesForKey("multiple_key",newStuff);
 
 
         sign_up_link.setOnClickListener(new View.OnClickListener() {
@@ -167,6 +257,18 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
                 startActivity(new Intent(getApplicationContext(),SignupActivity.class));
             }
         });
+
+
+        HashMap<String, Object> data=new HashMap<String,Object>();
+        data.put("otc_cart",1);
+        data.put("otc_cart2",2);
+
+        HashMap<String, Object> advance_Prop=new HashMap<String,Object>();
+        advance_Prop.put("a",data);
+        advance_Prop.put("b",123);
+
+
+       // cleverTapAPI.pushEvent("Advance_event",advance_Prop);
 
         loginNow.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -188,6 +290,7 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
                         loginAction.put("Identity", u11);
                         loginAction.put("Date", new Date());
                         cleverTapAPI.pushEvent("Login", loginAction);
+
 
                         startActivity(new Intent(getApplicationContext(),Homepage.class));
 
@@ -211,7 +314,7 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
                         loginAction.put("Action", "Login_Successful");
                         loginAction.put("Identity", u11);
                         loginAction.put("Date", new Date());
-                        cleverTapAPI.pushEvent("Login", loginAction);
+                        cleverTapAPI.pushEvent("Login",loginAction);
                     }
                     else{
                         Toast.makeText(getApplicationContext(), "Wrong Password :(", Toast.LENGTH_SHORT).show();
@@ -222,7 +325,7 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
         pushTestProfile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                profileUpdate.put("Identity", "9855290227");
+                profileUpdate.put("Identity", "9855290227");//9855290227
                 profileUpdate.put("Name", "Sumit Sharma");
                 profileUpdate.put("Email", "sumit.kumar@clevertap.com"); // Email address of the user
                 profileUpdate.put("Phone", "+919855290227");   // Phone (with the country code, starting with +)
@@ -236,14 +339,22 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
                 cleverTapAPI.onUserLogin(profileUpdate);
                 Toast.makeText(getApplicationContext(), "Test Profile Pushed Successfully", Toast.LENGTH_SHORT).show();
                 cleverTapAPI.pushEvent("LoginWithTestProfile");
+                //Push segment user property
+                //SegmentPropUpdate=new HashMap<String,Object>();
+                //SegmentPropUpdate.put("seg_name","Peter Gibbons");
+                //Analytics.with(getApplicationContext()).identify("9855290227", new HashMap[]{SegmentPropUpdate});
+                //Analytics.with(getApplicationContext()).identify("9855290227");
+
+
                 startActivity(new Intent(getApplicationContext(),Homepage.class));
             }
         });
         skip.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(getApplicationContext(),Homepage.class));
-                Analytics.with(getApplicationContext()).track("Segment_skip_event");
+                //startActivity(new Intent(getApplicationContext(),Homepage.class));
+                cleverTapAPI.pushEvent("skip_button_clicked");
+               // Analytics.with(getApplicationContext()).track("Segment_skip_event");
 
             }
         });
@@ -416,7 +527,11 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
 
     @Override
     public void onNotificationClickedPayloadReceived(HashMap<String, Object> payload) {
-        Log.d(Tag1, String.valueOf(payload));
+        System.out.println("CT_payload: "+payload.toString());
+        Log.d(Tag50, payload.toString());
+        Toast.makeText(getApplicationContext(), "Notif Payload"+payload.toString(), Toast.LENGTH_SHORT).show();
+        notificationpayload.setText(payload.toString());
+        cleverTapAPI.pushNotificationClickedEvent(getIntent().getExtras());
         //String deplink= (String) payload.get("wzrk_dl");
         /*if(deplink.equals("ctdl://ct.com/deep")){
             startActivity(new Intent(getApplicationContext(),DeeplinkActivity.class));
@@ -457,7 +572,13 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
 
     }
 
-  /*  @Override
+
+
+
+
+
+
+ /*  @Override
     public void onInAppButtonClick(HashMap<String, String> inApp_payload) {
         Toast.makeText(getApplicationContext(), "In-App Payload: "+inApp_payload, Toast.LENGTH_LONG).show();
         if(inApp_payload!=null){
@@ -490,7 +611,18 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
 
     @Override
     protected void onNewIntent(Intent intent) {
+
         super.onNewIntent(intent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            cleverTapAPI.pushNotificationClickedEvent(intent.getExtras());
+        }
+
+        //Bundle bundle=intent.getBundleExtra("bundle");
+       // System.out.println("Bundle= "+bundle.toString());
+
+       // CleverTapAPI.getDefaultInstance(getApplicationContext()).pushNotificationClickedEvent(bundle);
+
+
 
     }
 
@@ -498,13 +630,13 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
     protected void onResume() {
         super.onResume();
         Intent intent=getIntent();
-        payload1=intent.getExtras();
-        if(payload1!=null){
-            Toast.makeText(getApplicationContext(), "Payload: "+payload1, Toast.LENGTH_SHORT).show();
-        }
-        else{
-        Log.d(Tag1, String.valueOf(payload1));
-        Toast.makeText(getApplicationContext(), "Intent value: "+payload1, Toast.LENGTH_SHORT).show();
+        //payload1=intent.getExtras();
+        //if(payload1!=null){
+          //  Toast.makeText(getApplicationContext(), "Payload: "+payload1, Toast.LENGTH_SHORT).show();
+        //}
+        //else{
+        //Log.d(Tag1, String.valueOf(payload1));
+       // Toast.makeText(getApplicationContext(), "Intent value: "+payload1, Toast.LENGTH_SHORT).show();
        /* if (payload1.containsKey("pt_id")&& payload1.getString("pt_id").equals("pt_rating"))
         {
             NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -515,15 +647,31 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
             NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             nm.cancel(payload1.getInt("notificationId"));
         }
-
     }*/
     }
-    }
+    //}
 
     @Override
     public void onInAppButtonClick(HashMap<String, String> payload) {
-            Log.d(Tag10,payload.toString());
+        Toast.makeText(this, "Before if condition", Toast.LENGTH_SHORT).show();
+            if (payload!=null){
+                Toast.makeText(this, "Payload: "+payload.toString(), Toast.LENGTH_SHORT).show();
+                System.out.println("In-App Payload: "+payload.toString());
+                Log.d(Tag10,payload.toString());
+                Log.i("InApp Callback",payload.toString());
+            }
     }
+
+   @Override
+    public void onInboxItemClicked(CTInboxMessage message) {
+        if(message != null){
+            //Read the values
+            Toast.makeText(this, "Inbox Data "+message.getCarouselImages().toString(), Toast.LENGTH_SHORT).show();
+            System.out.println("InboxData: "+message.getCarouselImages().toString());
+        }
+    }
+
+
     //Show SnakeBar
   /* private void showSnackbar(final int mainTextStringId, final int actionStringId,
                               View.OnClickListener listener) {
@@ -658,3 +806,20 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
         }
     }*/
 }
+
+
+/*
+<style name="Theme.CTOOBDemoApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorSecondaryVariant">@color/teal_700</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <!-- Customize your theme here. -->
+    </style>
+* */
