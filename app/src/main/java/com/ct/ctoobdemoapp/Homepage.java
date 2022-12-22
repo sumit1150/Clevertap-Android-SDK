@@ -37,7 +37,7 @@ import java.util.HashMap;
 public class Homepage extends AppCompatActivity implements CTInboxListener, InboxMessageButtonListener, DisplayUnitListener {
     ImageButton app_inbox_id;
     CleverTapAPI cleverTapAPI;
-    Button ctNativeDisplayEvent,goToWebPage,ct_custom_event,ct_Movie_Watched,id_app_inbox;
+    Button ctNativeDisplayEvent,goToWebPage,ct_custom_event,ct_Movie_Watched,id_app_inbox,nativeDisplay2;
     TextView  nativeDisplayResult, productConfigResults,productConfigABResult;
     CTProductConfigController productConfigController;
     String productConfigString,ab_test_String;
@@ -74,6 +74,7 @@ public class Homepage extends AppCompatActivity implements CTInboxListener, Inbo
         ct_Movie_Watched=findViewById(R.id.ct_Movie_Watched);
         imageView=findViewById(R.id.imageView);
         id_app_inbox=findViewById(R.id.id_app_inbox);
+        nativeDisplay2=findViewById(R.id.nativeDisplay2);
 
         cleverTapAPI=CleverTapAPI.getDefaultInstance(this);
 
@@ -210,6 +211,13 @@ public class Homepage extends AppCompatActivity implements CTInboxListener, Inbo
                 cleverTapAPI.pushEvent("ct_Movie_Watched",movieProp);
             }
         });
+
+        nativeDisplay2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                CleverTapAPI.getDefaultInstance(getApplicationContext()).pushEvent("CT_Native_Display_Event2");
+            }
+        });
     }
 
     @Override
@@ -221,6 +229,9 @@ public class Homepage extends AppCompatActivity implements CTInboxListener, Inbo
                 cleverTapAPI.showAppInbox();
             }
         });
+
+
+
     }
 
     @Override
@@ -257,7 +268,19 @@ public class Homepage extends AppCompatActivity implements CTInboxListener, Inbo
         if(unit.getCustomExtras().containsKey("Nativekey1") && unit.getCustomExtras().containsValue("Red")){
             nativeDisplayResult.setBackgroundColor(Color.parseColor("#FF0000"));
             nativeDisplayResult.setText("Native Display Results: Key Found, Details:"+unit.getCustomExtras().toString());
+            cleverTapAPI.pushDisplayUnitViewedEventForID(unit.getUnitID());
+            cleverTapAPI.pushDisplayUnitClickedEventForID(unit.getUnitID());
+            Log.d(Tag3,unit.toString());
+            Toast.makeText(getApplicationContext(), "Units: "+unit.getContents().toString(), Toast.LENGTH_SHORT).show();
         }
+        //else if(){
+          // nativeDisplayResult.setBackgroundColor(Color.parseColor("#00FF00"));
+            //nativeDisplayResult.setText("Native Display Results: Key Found, Details:"+unit.getCustomExtras().toString());
+            //Log.d(Tag3,unit.toString());
+
+           //Toast.makeText(getApplicationContext(), "Units: "+unit.getContents().toString(), Toast.LENGTH_SHORT).show();
+        //}
+
 
     }
 

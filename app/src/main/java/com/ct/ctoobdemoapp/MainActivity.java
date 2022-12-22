@@ -40,12 +40,14 @@ import com.clevertap.android.geofence.interfaces.CTLocationUpdatesListener;
 import com.clevertap.android.sdk.CTInboxListener;
 import com.clevertap.android.sdk.CleverTapAPI;
 import com.clevertap.android.sdk.InAppNotificationButtonListener;
+import com.clevertap.android.sdk.interfaces.OnInitCleverTapIDListener;
 import com.clevertap.android.sdk.pushnotification.CTPushNotificationListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.segment.analytics.Analytics;
 
 import org.json.JSONObject;
 
@@ -53,11 +55,13 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Objects;
 
+
 public class MainActivity extends AppCompatActivity implements CTPushNotificationListener, InAppNotificationButtonListener, CTInboxListener {
 
     CleverTapAPI cleverTapAPI;
     private static final String Tag1="MainActivity";
     private static final String Tag2="Sumit";
+    private static final String Tag10="InAppPayload";
     String clevertapID="";
     //UI Declaration
     EditText UserName,Password;
@@ -77,9 +81,15 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
     int i=0;
     private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 34;//For geofencing
     private FirebaseAnalytics mFirebaseAnalytics;//this is for real time uninatall tracking
+    //Analytics analytics;
 
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        cleverTapAPI=CleverTapAPI.getDefaultInstance(getApplicationContext());
 
+    }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @SuppressLint("WrongThread")
@@ -87,9 +97,16 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //analytics = new Analytics.Builder(getApplicationContext(), "LNhrPMl1KhxgW80G4tpcpEvVRRcNd3if").build();
+
 
         //Initilization of clevertap SDK
         cleverTapAPI=CleverTapAPI.getDefaultInstance(getApplicationContext());
+
+       // Analytics.setSingletonInstance(analytics);
+
+        assert cleverTapAPI != null;
+        cleverTapAPI.pushEvent("Custom_App_Launch");
         //setup the CT debugger
         CleverTapAPI.setDebugLevel(CleverTapAPI.LogLevel.DEBUG);
         //Get Shared preference
@@ -100,6 +117,7 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
         //Creating a Notification Channel
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CleverTapAPI.createNotificationChannel(getApplicationContext(),"General","General","General Channel",NotificationManager.IMPORTANCE_MAX,true,"four.mp3");
+            CleverTapAPI.createNotificationChannel(getApplicationContext(),"NoSound","NoSound","NoSound Channel",NotificationManager.IMPORTANCE_MAX,true);
         }
 
         //Handling the deeplink in App kill state
@@ -140,6 +158,8 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
         skip=findViewById(R.id.skip);
         //Profile update
         profileUpdate = new HashMap<String, Object>();
+
+
 
         sign_up_link.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -223,6 +243,8 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(getApplicationContext(),Homepage.class));
+                Analytics.with(getApplicationContext()).track("Segment_skip_event");
+
             }
         });
 
@@ -435,10 +457,12 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
 
     }
 
-    @Override
+  /*  @Override
     public void onInAppButtonClick(HashMap<String, String> inApp_payload) {
         Toast.makeText(getApplicationContext(), "In-App Payload: "+inApp_payload, Toast.LENGTH_LONG).show();
         if(inApp_payload!=null){
+            Log.d(Tag10,inApp_payload.toString());
+
             //read values
             Log.d(Tag2, String.valueOf(inApp_payload));
             if(inApp_payload.containsKey("wzrk_dl") && (inApp_payload.containsValue("ctdl://ct.com/home") || inApp_payload.containsValue("ctdl:\\/\\/ct.com\\/home"))){
@@ -451,7 +475,7 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
             Toast.makeText(getApplicationContext(), "No Click found", Toast.LENGTH_SHORT).show();
         }
 
-    }
+    }*/
 
     @Override
     public void inboxDidInitialize() {
@@ -494,6 +518,11 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
 
     }*/
     }
+    }
+
+    @Override
+    public void onInAppButtonClick(HashMap<String, String> payload) {
+            Log.d(Tag10,payload.toString());
     }
     //Show SnakeBar
   /* private void showSnackbar(final int mainTextStringId, final int actionStringId,

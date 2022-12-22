@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import androidx.annotation.NonNull;
 
 //import com.clevertap.android.sdk.pushnotification.fcm.CTFcmMessageHandler;
+//import com.clevertap.android.sdk.pushnotification.fcm.CTFcmMessageHandler;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -13,10 +14,8 @@ public class MyFcmMessageListenerService extends FirebaseMessagingService {
 
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
-
-       // new CTFcmMessageHandler().createNotification(getApplicationContext(), remoteMessage);
-
-
+        super.onMessageReceived(remoteMessage);
+       //new CTFcmMessageHandler().createNotification(getApplicationContext(), remoteMessage);
     }
 }
 

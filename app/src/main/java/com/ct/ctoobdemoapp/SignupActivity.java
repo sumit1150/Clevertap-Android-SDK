@@ -136,6 +136,7 @@ public class SignupActivity extends AppCompatActivity {
                 profileUpdate.put("MSG-sms", false);          // Disable SMS notifications
                 profileUpdate.put("MSG-whatsapp", false);// Enable WhatsApp notifications
                 profileUpdate.put("TestIntValue", 10);// Enable WhatsApp notifications
+                profileUpdate.put("Mobile_Number", "919855290227");// Enable WhatsApp notifications
                     Log.d(Tag,signup_Name);
                     Log.d(Tag,signup_PhoneNumber);
                    // Log.d(Tag,signup_Email);
