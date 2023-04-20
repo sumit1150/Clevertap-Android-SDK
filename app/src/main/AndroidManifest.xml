@@ -90,29 +90,30 @@
 
         <!-- Push Notifications implementation - Default service -->
 
-    <service
-            android:name="com.clevertap.android.sdk.pushnotification.fcm.FcmMessageListenerService"
-            android:exported="true">
-            <intent-filter>
+   <service
+        android:name="com.clevertap.android.sdk.pushnotification.fcm.FcmMessageListenerService"
+          android:exported="true">
+         <intent-filter>-->
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
+           </intent-filter>-->
+       </service>
 
         <!--Push Notification Custom Handling-->
-      <!--<service
-            android:name="com.ct.ctoobdemoapp.MyFcmMessageListenerService"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
-            </intent-filter>
-        </service>-->
+<!--      <service-->
+<!--            android:name="com.ct.ctoobdemoapp.MyFcmMessageListenerService"-->
+<!--            android:exported="true">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="com.google.firebase.MESSAGING_EVENT"/>-->
+<!--            </intent-filter>-->
+<!--        </service>-->
 
-        <!--Custom Handling: To track the push notification events and deeplinks add the following receiver in your AndroidManifest.xml.-->
-      <!--<receiver
-            android:name="com.clevertap.android.sdk.pushnotification.CTPushNotificationReceiver"
-            android:exported="false"
-            android:enabled="true">
-        </receiver>-->
+<!--        &lt;!&ndash;Custom Handling: To track the push notification events and deeplinks add the following receiver in your AndroidManifest.xml.&ndash;&gt;-->
+<!--      <receiver-->
+<!--            android:name="com.clevertap.android.sdk.pushnotification.CTPushNotificationReceiver"-->
+<!--            android:exported="false"-->
+<!--            android:enabled="true">-->
+<!--        </receiver>-->
+
 
 
         <!-- replace below value with your FCM project number. -->
@@ -148,11 +149,11 @@
 
         <meta-data
             android:name="CLEVERTAP_XIAOMI_APP_KEY"
-            android:value="5382047861796" />
+            android:value="@string/xiaomi_app_key"/>
 
         <meta-data
             android:name="CLEVERTAP_XIAOMI_APP_ID"
-            android:value="2882303761520478796" />
+            android:value="@string/xiaomi_app_id" />
 
         <service
             android:enabled="true"

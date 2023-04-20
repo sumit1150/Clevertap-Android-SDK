@@ -6,16 +6,18 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
+//import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
 //import com.clevertap.android.sdk.pushnotification.fcm.CTFcmMessageHandler;
 //import com.clevertap.android.sdk.pushnotification.fcm.CTFcmMessageHandler;
 import com.clevertap.android.sdk.CleverTapAPI;
+import com.clevertap.android.sdk.pushnotification.CTPushNotificationReceiver;
 import com.clevertap.android.sdk.pushnotification.fcm.CTFcmMessageHandler;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
@@ -32,7 +34,7 @@ public class MyFcmMessageListenerService extends FirebaseMessagingService {
 
 
     @Override
-    public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
+    public void onMessageReceived(RemoteMessage remoteMessage) {
         //Custom Rendering Notification comes from CleverTap
     //  new CTFcmMessageHandler().createNotification(getApplicationContext(), remoteMessage);
       // new CTFcmMessageHandler().processPushAmp(getApplicationContext(), remoteMessage);
@@ -41,7 +43,7 @@ public class MyFcmMessageListenerService extends FirebaseMessagingService {
 
 
         Bundle bundle=new Bundle();
-        new CTFcmMessageHandler().createNotification(getApplicationContext(), remoteMessage);
+        //new CTFcmMessageHandler().createNotification(getApplicationContext(), remoteMessage);
 
         Map<String, String> messageData = remoteMessage.getData();
         Log.d("Message: ", messageData.toString());
@@ -59,7 +61,21 @@ public class MyFcmMessageListenerService extends FirebaseMessagingService {
         }
         intent.putExtra("bundle",bundle);
 
-        PendingIntent pendingIntent=PendingIntent.getActivity(this,0,intent,PendingIntent.FLAG_UPDATE_CURRENT);
+
+        PendingIntent pendingIntent;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // Create a PendingIntent using FLAG_IMMUTABLE.
+             pendingIntent=PendingIntent.getActivity(this,0,intent,PendingIntent.FLAG_IMMUTABLE);
+
+        } else {
+            pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+        }
+        //To simulate the pending intent mutability crash
+       // pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+
+
+        //PendingIntent pendingIntent=PendingIntent.getActivity(this,0,intent,PendingIntent.FLAG_IMMUTABLE);
 
 
         //Notification custom Builder
@@ -76,6 +92,7 @@ public class MyFcmMessageListenerService extends FirebaseMessagingService {
                 .setContentText(text);
                 //.setContentInfo("Information");
         notificationManager.notify(1, notificationBuilder.build());
+        CleverTapAPI.getDefaultInstance(this).pushNotificationViewedEvent(bundle);
 
 
        //new CTFcmMessageHandler().createNotification(getApplicationContext(), remoteMessage);
@@ -83,7 +100,7 @@ public class MyFcmMessageListenerService extends FirebaseMessagingService {
     }
 
     @Override
-    public void onNewToken(@NonNull String s) {
+    public void onNewToken(String s) {
         super.onNewToken(s);
         Log.d("Firebase Token:",s);
         //CleverTapAPI.getDefaultInstance(this).pushFcmRegistrationId(s,true);

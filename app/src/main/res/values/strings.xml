@@ -10,5 +10,7 @@
         <item>F</item>
         <item>Others</item>
     </string-array>
+    <string name="xiaomi_app_key">5152150470705000</string><!--5152150470705-->
+    <string name="xiaomi_app_id">288230376152150470500</string><!--2882303761521504705-->
 
 </resources>

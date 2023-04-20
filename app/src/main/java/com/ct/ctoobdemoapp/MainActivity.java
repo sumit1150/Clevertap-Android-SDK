@@ -2,8 +2,8 @@ package com.ct.ctoobdemoapp;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
+//import androidx.annotation.NonNull;
+//import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -12,6 +12,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -27,8 +28,10 @@ import android.provider.Settings;
 import android.text.Editable;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,7 +43,9 @@ import com.clevertap.android.geofence.interfaces.CTLocationUpdatesListener;
 import com.clevertap.android.sdk.CTInboxListener;
 import com.clevertap.android.sdk.CleverTapAPI;
 import com.clevertap.android.sdk.InAppNotificationButtonListener;
-import com.clevertap.android.sdk.InboxMessageListener;
+//import com.clevertap.android.sdk.InboxMessageListener;
+import com.clevertap.android.sdk.displayunits.DisplayUnitListener;
+import com.clevertap.android.sdk.displayunits.model.CleverTapDisplayUnit;
 import com.clevertap.android.sdk.inbox.CTInboxMessage;
 import com.clevertap.android.sdk.interfaces.OnInitCleverTapIDListener;
 import com.clevertap.android.sdk.pushnotification.CTPushNotificationListener;
@@ -66,31 +71,33 @@ import com.appsflyer.AppsFlyerLib;
 
 
 
-public class MainActivity extends AppCompatActivity implements CTPushNotificationListener, InAppNotificationButtonListener, CTInboxListener,InboxMessageListener { //, InboxMessageListener lind numbr 659 and 43
+public class MainActivity extends AppCompatActivity implements InAppNotificationButtonListener, CTInboxListener,DisplayUnitListener { //, InboxMessageListener lind numbr 659 and 43 //CTPushNotificationListener//CTPushNotificationListener //,InboxMessageListener
 
     CleverTapAPI cleverTapAPI;
-    private static final String Tag1="MainActivity";
-    private static final String Tag50="Notipayload";
-    private static final String Tag2="Boss";
-    private static final String Tag10="InAppPayload";
+    private static final String Tag1 = "MainActivity";
+    public static final String Tag50 = "Notipayload";
+    private static final String Tag2 = "Boss";
+    public static final String Tag10 = "InAppPayload";
+    LinearLayout linearLayout;
 
-    String clevertapID="";
+
+    String clevertapID = "";
     //UI Declaration
-    EditText UserName,Password;
-    TextView sign_up_link,pushTestProfile,skip,notificationpayload;
-    Button loginNow;
+    EditText UserName, Password;
+    TextView sign_up_link, pushTestProfile, skip, notificationpayload;
+    Button loginNow,crash;
     //UI Variables
     String username;
     String password;
-    String u11,p11;
-    public static final String MyPREFERENCES = "MyPrefs" ;
+    String u11, p11;
+    public static final String MyPREFERENCES = "MyPrefs";
     SharedPreferences sharedpreferences;
     //profile update
     HashMap<String, Object> profileUpdate;
     HashMap<String, Object> loginAction;
     HashMap<String, Object> pushPropUpdate;
     Bundle payload1;
-    int i=0;
+    int i = 0;
     private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 34;//For geofencing
     private FirebaseAnalytics mFirebaseAnalytics;//this is for real time uninatall tracking
 
@@ -99,26 +106,27 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
     String userProperty;
 
     //Appsflayer dev key
-   // TN6PNVCuJE7iKmHyaaAvAC
+    // TN6PNVCuJE7iKmHyaaAvAC
 
     @Override
     protected void onStart() {
         super.onStart();
-        cleverTapAPI=CleverTapAPI.getDefaultInstance(getApplicationContext());
+        cleverTapAPI = CleverTapAPI.getDefaultInstance(getApplicationContext());
 
     }
 
     @SuppressLint("WrongThread")
-    @RequiresApi(api = Build.VERSION_CODES.N)
+   // @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        linearLayout = findViewById(R.id.mainAct);
         // analytics = new Analytics.Builder(getApplicationContext(), "LNhrPMl1KhxgW80G4tpcpEvVRRcNd3if").trackApplicationLifecycleEvents().recordScreenViews().build();
         //Analytics.setSingletonInstance(analytics);
 
         //Xiaomi
-      //  CleverTapAPI.enableXiaomiPushOn(PushConstants.XIAOMI_MIUI_DEVICES);
+
         //MiPushClient.registerPush(getApplicationContext(),"2882303761520478796","5382047861796");
         //MiPushClient.registerPush(this, "2882303761520478796","5382047861796");
         // String xiaomiToken = MiPushClient.getRegId(getApplicationContext());
@@ -127,7 +135,14 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
 
 
         //Initilization of clevertap SDK
-        cleverTapAPI=CleverTapAPI.getDefaultInstance(getApplicationContext());
+        cleverTapAPI = CleverTapAPI.getDefaultInstance(getApplicationContext());
+       // CleverTapAPI.enableXiaomiPushOn(PushConstants.ALL_DEVICES);
+//        MiPushClient.registerPush(this, "2882303761521504705", "5152150470705");
+//        String xiaomiToken = MiPushClient.getRegId(this);
+//        String xiaomiRegion = MiPushClient.getAppRegion(getApplicationContext());
+//        cleverTapAPI.pushXiaomiRegistrationId(xiaomiRegion,true,xiaomiToken);
+
+
 
         //AppsFlayer Initilization
         AppsFlyerLib.getInstance().start(this);
@@ -143,26 +158,51 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
             }
         });
 
+
         //Appsflayer Custom Event
         Map<String, Object> eventValues = new HashMap<String, Object>();
         eventValues.put("Price", 1234.56);
-        eventValues.put("value","1234567");
-        AppsFlyerLib.getInstance().logEvent(getApplicationContext(),"Appsflayer_event", eventValues);
+        eventValues.put("value", "1234567");
+        AppsFlyerLib.getInstance().logEvent(getApplicationContext(), "Appsflayer_event", eventValues);
 
 
+//        //Charged event
+//
+//
+//        HashMap<String, Object> chargeDetails = new HashMap<String, Object>();
+//        chargeDetails.put("Amount", 500);
+//        chargeDetails.put("Payment Mode", "Credit card");
+//        chargeDetails.put("Charged ID", 240250);
+//        chargeDetails.put("Items|P1",50000);
+//
+//        HashMap<String, Object> item4 = new HashMap<String, Object>();
+//        item4.put("Product category", "books");
+//        item4.put("Book name", "The Millionaire next door");
+//        item4.put("Quantity", 1);
+//
+//        ArrayList<HashMap<String, Object>> items = new ArrayList<HashMap<String, Object>>();
+//        items.add(item4);
+//
+//        try {
+//            cleverTapAPI.pushChargedEvent(chargeDetails,items);
+//        } catch (Exception e) {
+//            Toast.makeText(this, "Exception occurs"+e.toString(), Toast.LENGTH_SHORT).show();
+//            // You have to specify the first parameter to push()
+//            // as CleverTapAPI.CHARGED_EVENT
+//        }
 
 
         //Custom Handling code ******************************************
         //String fcmRegId= String.valueOf(FirebaseMessaging.getInstance().getToken());
-       //String fcmRegId = FirebaseInstanceId.getInstance().getToken();
-       //String fcmRegId= String.valueOf(FirebaseMessaging.getInstance().getToken());
-       //Log.d(Tag2, String.valueOf(fcmRegId));
-       // Toast.makeText(getApplicationContext(), "Firebase Token "+fcmRegId, Toast.LENGTH_SHORT).show();
-       //cleverTapAPI.pushFcmRegistrationId(fcmRegId,true);
-      //  cleverTapAPI.pushFcmRegistrationId(String.valueOf(FirebaseMessaging.getInstance().getToken()),true);
+        //String fcmRegId = FirebaseInstanceId.getInstance().getToken();
+        //String fcmRegId= String.valueOf(FirebaseMessaging.getInstance().getToken());
+        //Log.d(Tag2, String.valueOf(fcmRegId));
+        // Toast.makeText(getApplicationContext(), "Firebase Token "+fcmRegId, Toast.LENGTH_SHORT).show();
+        //cleverTapAPI.pushFcmRegistrationId(fcmRegId,true);
+        //  cleverTapAPI.pushFcmRegistrationId(String.valueOf(FirebaseMessaging.getInstance().getToken()),true);
         //******************************************************************
 
-       // Analytics.setSingletonInstance(analytics);
+        // Analytics.setSingletonInstance(analytics);
 
         assert cleverTapAPI != null;
         cleverTapAPI.pushEvent("Custom_App_Launch");
@@ -170,14 +210,16 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
         CleverTapAPI.setDebugLevel(CleverTapAPI.LogLevel.DEBUG);
         //Get Shared preference
         //Get Clevertap ID
-       // clevertapID=cleverTapAPI.getCleverTapID();
-        Toast.makeText(getApplicationContext(), "Clevertap ID"+clevertapID, Toast.LENGTH_SHORT).show();
+        // clevertapID=cleverTapAPI.getCleverTapID();
+        Toast.makeText(getApplicationContext(), "Clevertap ID" + clevertapID, Toast.LENGTH_SHORT).show();
         //Log.d(Tag1,clevertapID);
         //Creating a Notification Channel
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CleverTapAPI.createNotificationChannel(getApplicationContext(),"General","General","General Channel",NotificationManager.IMPORTANCE_MAX,true,"four.mp3");
-            CleverTapAPI.createNotificationChannel(getApplicationContext(),"NoSound","NoSound","NoSound Channel",NotificationManager.IMPORTANCE_MAX,true);
+            CleverTapAPI.createNotificationChannel(getApplicationContext(), "General", "General", "General Channel", NotificationManager.IMPORTANCE_MAX, true, "four.mp3");
+            CleverTapAPI.createNotificationChannel(getApplicationContext(), "NoSound", "NoSound", "NoSound Channel", NotificationManager.IMPORTANCE_MAX, true);
         }
+
+        cleverTapAPI.getLocation();
 
         //Handling the deeplink in App kill state
         /*Intent intent = getIntent();
@@ -191,27 +233,29 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
         Uri data1 = intent.getData();
 
 
-        if(cleverTapAPI!=null) {
+        if (cleverTapAPI != null) {
             //Set Push Notification Listener
-            cleverTapAPI.setCTPushNotificationListener(this);
+            //cleverTapAPI.setCTPushNotificationListener(this);
             //set in-App button click listener
             cleverTapAPI.setInAppNotificationButtonListener(this);
             //set App inbox listener
             //I need to put this in App inbox button click
-           // cleverTapAPI.setCTNotificationInboxListener(this);
+            // cleverTapAPI.setCTNotificationInboxListener(this);
             //Initialize the inbox and wait for callbacks on overridden methods
-           // cleverTapAPI.initializeInbox();
-            
+            // cleverTapAPI.initializeInbox();
+            CleverTapAPI.getDefaultInstance(this).setDisplayUnitListener(this);
+
             //Xiaomi
 
             //HashMap<String, Object> new_data=new HashMap<String,Object>();
             //new_data.put("a","{first_touc_finding_method_aggregate = Search; first_touch_finding_method_granular = HP - Query; last_touch_finding_method_aggregate = Reco - OTC_PDP; last_touch_finding_method_granular = OTC_PDP - FBT; listing_id = ; product_id = 183037; }, { first_touch_finding_method_aggregate = Search; first_touch_finding_method_granular = HP - Query; last_touch_finding_method_aggre,first_touch_finding_method_granular = HP - Query; llast_touch_finding_method_granular = OTC_PDP - FBT; listing_id = ; product_id = 183037;}");
             //new_data.put("b","{first_touc_finding_method_aggregate = Search; first_touch_finding_method_granular = HP - Query; last_touch_finding_method_aggregate = Reco - OTC_PDP; last_touch_finding_method_granular = OTC_PDP - FBT; listing_id = ; product_id = 183037; }, { first_touch_finding_method_aggregate = Search; first_touch_finding_method_granular = HP - Query; last_touch_finding_method_aggre,first_touch_finding_method_granular = HP - Query; llast_touch_finding_method_granular = OTC_PDP - FBT; listing_id = ; product_id = 1234567890121;Sumit_Kumar_sharma}");
 
-           //cleverTapAPI.pushEvent("Login_master", new_data);
+            //cleverTapAPI.pushEvent("Login_master", new_data);
             //System.out.println("YourCleverTapID: "+cleverTapAPI.getCleverTapID().toString());
 
             cleverTapAPI.pushEvent("WebViewTransition");
+
             //cleverTapAPI.pushEvent("Web View Transition");
 
         }
@@ -225,13 +269,14 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
 
 
         //UI Defination
-        UserName=findViewById(R.id.UserName);
-        Password=findViewById(R.id.Password);
-        sign_up_link=findViewById(R.id.sign_up_link);
-        loginNow=findViewById(R.id.loginNow);
-        pushTestProfile=findViewById(R.id.testProfile);
-        skip=findViewById(R.id.skip);
-        notificationpayload=findViewById(R.id.notificationpayload);
+        UserName = findViewById(R.id.UserName);
+        Password = findViewById(R.id.Password);
+        sign_up_link = findViewById(R.id.sign_up_link);
+        loginNow = findViewById(R.id.loginNow);
+        pushTestProfile = findViewById(R.id.testProfile);
+        skip = findViewById(R.id.skip);
+        crash = findViewById(R.id.crash);
+        notificationpayload = findViewById(R.id.notificationpayload);
         //Profile update
         profileUpdate = new HashMap<String, Object>();
 
@@ -240,7 +285,7 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
         cleverTapAPI.enablePersonalization();
         //userProperty=cleverTapAPI.getProperty("Boss").toString();
         //Toast.makeText(getApplicationContext(), "userProp Value: "+userProperty, Toast.LENGTH_SHORT).show();
-       // String userProperty = (String) cleverTapAPI.getProperty("TestIntValue");
+        // String userProperty = (String) cleverTapAPI.getProperty("TestIntValue");
         //Log.d(Tag2,userProperty);
 
         //Multiple value profiles
@@ -248,77 +293,83 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
         ArrayList<String> newStuff = new ArrayList<String>();
         newStuff.add("socks");
         newStuff.add("scarf");
-        cleverTapAPI.addMultiValuesForKey("multiple_key",newStuff);
+        cleverTapAPI.addMultiValuesForKey("multiple_key", newStuff);
+
+        crash.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                throw new RuntimeException("Test Crash");
+            }
+        });
+//        addContentView(crash, new ViewGroup.LayoutParams(
+//                ViewGroup.LayoutParams.MATCH_PARENT,
+//
+          // ViewGroup.LayoutParams.WRAP_CONTENT));
 
 
         sign_up_link.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(getApplicationContext(),SignupActivity.class));
+                startActivity(new Intent(getApplicationContext(), SignupActivity.class));
             }
         });
 
 
-        HashMap<String, Object> data=new HashMap<String,Object>();
-        data.put("otc_cart",1);
-        data.put("otc_cart2",2);
+        HashMap<String, Object> data = new HashMap<String, Object>();
+        data.put("otc_cart", 1);
+        data.put("otc_cart2", 2);
 
-        HashMap<String, Object> advance_Prop=new HashMap<String,Object>();
-        advance_Prop.put("a",data);
-        advance_Prop.put("b",123);
+        HashMap<String, Object> advance_Prop = new HashMap<String, Object>();
+        advance_Prop.put("a", data);
+        advance_Prop.put("b", 123);
 
 
-       // cleverTapAPI.pushEvent("Advance_event",advance_Prop);
+        // cleverTapAPI.pushEvent("Advance_event",advance_Prop);
 
         loginNow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                username=UserName.getText().toString();
-                password=Password.getText().toString();
+                username = UserName.getText().toString();
+                password = Password.getText().toString();
                 sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
                 u11 = sharedpreferences.getString("userIdentity", "");
                 p11 = sharedpreferences.getString("userPassword", "");
-                    if(username.equals(u11) && password.equals(p11))
-                    {
-                        Log.d(Tag1,u11);
-                        Log.d(Tag1,p11);
-                        profileUpdate.put("Identity", u11);
-                        cleverTapAPI.onUserLogin(profileUpdate);
-                        //Login Event property
-                        loginAction = new HashMap<String, Object>();
-                        loginAction.put("Action", "Login_Successful");
-                        loginAction.put("Identity", u11);
-                        loginAction.put("Date", new Date());
-                        cleverTapAPI.pushEvent("Login", loginAction);
+                if (username.equals(u11) && password.equals(p11)) {
+                    Log.d(Tag1, u11);
+                    Log.d(Tag1, p11);
+                    profileUpdate.put("Identity", u11);
+                    cleverTapAPI.onUserLogin(profileUpdate);
+                    //Login Event property
+                    loginAction = new HashMap<String, Object>();
+                    loginAction.put("Action", "Login_Successful");
+                    loginAction.put("Identity", u11);
+                    loginAction.put("Date", new Date());
+                    cleverTapAPI.pushEvent("Login", loginAction);
 
 
-                        startActivity(new Intent(getApplicationContext(),Homepage.class));
+                    startActivity(new Intent(getApplicationContext(), Homepage.class));
 
-                    }
-                    else if(username.equals("9855290227") && password.equals("1234"))
-                    {
-                        profileUpdate.put("Identity", "9855290227");
-                        cleverTapAPI.onUserLogin(profileUpdate);
-                        loginAction = new HashMap<String, Object>();
-                        loginAction.put("Action", "Login_Successful");
-                        loginAction.put("Identity", u11);
-                        loginAction.put("Date", new Date());
-                        cleverTapAPI.pushEvent("Login", loginAction);
+                } else if (username.equals("9855290227") && password.equals("1234")) {
+                    profileUpdate.put("Identity", "9855290227");
+                    cleverTapAPI.onUserLogin(profileUpdate);
+                    loginAction = new HashMap<String, Object>();
+                    loginAction.put("Action", "Login_Successful");
+                    loginAction.put("Identity", u11);
+                    loginAction.put("Date", new Date());
+                    cleverTapAPI.pushEvent("Login", loginAction);
 
-                        startActivity(new Intent(getApplicationContext(),Homepage.class));
-                    }
-                    else if(username.equals("") && password.equals("")){
-                        profileUpdate.put("Identity", "9855290227");
-                        cleverTapAPI.onUserLogin(profileUpdate);
-                        loginAction = new HashMap<String, Object>();
-                        loginAction.put("Action", "Login_Successful");
-                        loginAction.put("Identity", u11);
-                        loginAction.put("Date", new Date());
-                        cleverTapAPI.pushEvent("Login",loginAction);
-                    }
-                    else{
-                        Toast.makeText(getApplicationContext(), "Wrong Password :(", Toast.LENGTH_SHORT).show();
-                    }
+                    startActivity(new Intent(getApplicationContext(), Homepage.class));
+                } else if (username.equals("") && password.equals("")) {
+                    profileUpdate.put("Identity", "9855290227");
+                    cleverTapAPI.onUserLogin(profileUpdate);
+                    loginAction = new HashMap<String, Object>();
+                    loginAction.put("Action", "Login_Successful");
+                    loginAction.put("Identity", u11);
+                    loginAction.put("Date", new Date());
+                    cleverTapAPI.pushEvent("Login", loginAction);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Wrong Password :(", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -346,7 +397,7 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
                 //Analytics.with(getApplicationContext()).identify("9855290227");
 
 
-                startActivity(new Intent(getApplicationContext(),Homepage.class));
+                startActivity(new Intent(getApplicationContext(), Homepage.class));
             }
         });
         skip.setOnClickListener(new View.OnClickListener() {
@@ -354,7 +405,7 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
             public void onClick(View view) {
                 //startActivity(new Intent(getApplicationContext(),Homepage.class));
                 cleverTapAPI.pushEvent("skip_button_clicked");
-               // Analytics.with(getApplicationContext()).track("Segment_skip_event");
+                // Analytics.with(getApplicationContext()).track("Segment_skip_event");
 
             }
         });
@@ -363,7 +414,7 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
         try {
             CTGeofenceAPI.getInstance(getApplicationContext()).triggerLocation();
             Toast.makeText(getApplicationContext(), "Location triggred", Toast.LENGTH_SHORT).show();
-        } catch (IllegalStateException e){
+        } catch (IllegalStateException e) {
 
             // thrown when this method is called before geofence SDK initialization
         }
@@ -389,43 +440,44 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
             }
         }*/
 
-    //Realtime uninstall analysis
-       // mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
+        //Realtime uninstall analysis
+        // mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
         //mFirebaseAnalytics.setUserProperty("ct_objectId",
-          //      Objects.requireNonNull(CleverTapAPI.getDefaultInstance(this)).getCleverTapID());
+        //      Objects.requireNonNull(CleverTapAPI.getDefaultInstance(this)).getCleverTapID());
 
         //Device Network Information Reporting in Android
         cleverTapAPI.enableDeviceNetworkInfoReporting(true);
 
+
     }
 
-    public void permissionCheck(){
+    public void permissionCheck() {
 
         //Location permission check
         if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED){
+                != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(MainActivity.this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         }
-        if(ContextCompat.checkSelfPermission(MainActivity.this,Manifest.permission.ACCESS_BACKGROUND_LOCATION)
-                !=PackageManager.PERMISSION_GRANTED){
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(MainActivity.this,
                     new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, 2);
         }
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions,int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-            //Log.d(Tag1, String.valueOf(grantResults[0]));
-            //Log.d(Tag1, String.valueOf(grantResults[1]));
+        //Log.d(Tag1, String.valueOf(grantResults[0]));
+        //Log.d(Tag1, String.valueOf(grantResults[1]));
 
 
         switch (requestCode) {
             case 1:
                 //{
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED  ) {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     if (ContextCompat.checkSelfPermission(MainActivity.this,
                             Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                         Toast.makeText(this, "Permission 1 Granted", Toast.LENGTH_SHORT).show();
@@ -433,10 +485,10 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
                 } else {
                     Toast.makeText(this, "Permission 1 Denied", Toast.LENGTH_SHORT).show();
                 }
-               return;
+                return;
 
-           // }
-           case 2:
+            // }
+            case 2:
                 //{
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     if (ContextCompat.checkSelfPermission(MainActivity.this,
@@ -451,7 +503,7 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
         }
     }
 
-    public void ctGeofenceAPIFunc(){
+    public void ctGeofenceAPIFunc() {
         //Geofence Setting
         CTGeofenceSettings ctGeofenceSettings = new CTGeofenceSettings.Builder()
                 .enableBackgroundLocationUpdates(true)//boolean to enable background location updates
@@ -465,7 +517,7 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
                 .setGeofenceNotificationResponsiveness(300000)// int value for geofence notification responsiveness in milliseconds
                 .build();
         //setting up CT Geofence api
-        CTGeofenceAPI.getInstance(getApplicationContext()).init(ctGeofenceSettings,cleverTapAPI);
+        CTGeofenceAPI.getInstance(getApplicationContext()).init(ctGeofenceSettings, cleverTapAPI);
         CTGeofenceAPI.getInstance(getApplicationContext())
                 .setOnGeofenceApiInitializedListener(new CTGeofenceAPI.OnGeofenceApiInitializedListener() {
                     @Override
@@ -475,45 +527,42 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
                     }
                 });
         CTGeofenceAPI.getInstance(getApplicationContext()).setCtGeofenceEventsListener(new CTGeofenceEventsListener() {
-                    @Override
-                    public void onGeofenceEnteredEvent(JSONObject jsonObject) {
-                        //Callback on the main thread when the user enters Geofence with info in jsonObject
-                        Toast.makeText(getApplicationContext(), "Geofence Entered event triggered", Toast.LENGTH_SHORT).show();
-                    }
+            @Override
+            public void onGeofenceEnteredEvent(JSONObject jsonObject) {
+                //Callback on the main thread when the user enters Geofence with info in jsonObject
+                Toast.makeText(getApplicationContext(), "Geofence Entered event triggered", Toast.LENGTH_SHORT).show();
+            }
 
-                    @Override
-                    public void onGeofenceExitedEvent(JSONObject jsonObject) {
-                        //Callback on the main thread when user exits Geofence with info in jsonObject
-                        Toast.makeText(getApplicationContext(), "Geofence Exited event triggered", Toast.LENGTH_SHORT).show();
-                    }
-                });
+            @Override
+            public void onGeofenceExitedEvent(JSONObject jsonObject) {
+                //Callback on the main thread when user exits Geofence with info in jsonObject
+                Toast.makeText(getApplicationContext(), "Geofence Exited event triggered", Toast.LENGTH_SHORT).show();
+            }
+        });
         CTGeofenceAPI.getInstance(getApplicationContext()).setCtLocationUpdatesListener(new CTLocationUpdatesListener() {
-                    @Override
-                    public void onLocationUpdates(Location location) {
-                        //New location on the main thread as provided by the Android OS
+            @Override
+            public void onLocationUpdates(Location location) {
+                //New location on the main thread as provided by the Android OS
 
-                        if(location!=null){
-                            cleverTapAPI.setLocation(location);
-                            String lat= String.valueOf(location.getLatitude());
-                            String lon= String.valueOf(location.getLongitude());
-                            Toast.makeText(getApplicationContext(), "Location is updated, Lat: "+lat+", Long: "+lon, Toast.LENGTH_SHORT).show();
-                        }
-                        else
-                        {
-                            Toast.makeText(getApplicationContext(), "Location is point to null object", Toast.LENGTH_SHORT).show();
-                        }
+                if (location != null) {
+                    cleverTapAPI.setLocation(location);
+                    String lat = String.valueOf(location.getLatitude());
+                    String lon = String.valueOf(location.getLongitude());
+                    Toast.makeText(getApplicationContext(), "Location is updated, Lat: " + lat + ", Long: " + lon, Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Location is point to null object", Toast.LENGTH_SHORT).show();
+                }
 
-                    }
-                });
+            }
 
+        });
 
     }
 
 
-
     // I have decided the Deeplink URL= ctdl://ct.com/home and ctdl://ct.com/deep
     //When I use https in front of deeplink as a scheme then it opens the external browser. hence I am using mu own scheme as a Custom solution (Need to discuss this with Prashant)
-   //To handle the deeplinking in App Kill state I have added a intent filter as below also before using this intent filter my deeplink feature works in app foregrounf and app background state and the value I am getting is
+    //To handle the deeplinking in App Kill state I have added a intent filter as below also before using this intent filter my deeplink feature works in app foregrounf and app background state and the value I am getting is
     // ctdl://ct.com/home
     /*
     <intent-filter>
@@ -525,52 +574,59 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
     * */
     //After using this intent filter i am getting the the deeplink value as wzrk_dl":"ctdl:\/\/ct.com\/deep"
 
-    @Override
-    public void onNotificationClickedPayloadReceived(HashMap<String, Object> payload) {
-        System.out.println("CT_payload: "+payload.toString());
-        Log.d(Tag50, payload.toString());
-        Toast.makeText(getApplicationContext(), "Notif Payload"+payload.toString(), Toast.LENGTH_SHORT).show();
-        notificationpayload.setText(payload.toString());
-        cleverTapAPI.pushNotificationClickedEvent(getIntent().getExtras());
-        //String deplink= (String) payload.get("wzrk_dl");
-        /*if(deplink.equals("ctdl://ct.com/deep")){
-            startActivity(new Intent(getApplicationContext(),DeeplinkActivity.class));
-        }*/
-        //Log.d(Tag2,deplink);
-        //Log.d(Tag2, String.valueOf(payload.containsValue("ctdl:\\/\\/ct.com\\/home")));
-       if(payload.containsKey("wzrk_dl") && (payload.containsValue("ctdl://ct.com/home") || payload.containsValue("ctdl:\\/\\/ct.com\\/home"))){
-            startActivity(new Intent(getApplicationContext(),Homepage.class));
-        }
-        else if(payload.containsKey("wzrk_dl") && (payload.containsValue("ctdl://ct.com/deep") || payload.containsValue("ctdl:\\/\\/ct.com\\/deep"))){
-            startActivity(new Intent(getApplicationContext(),DeeplinkActivity.class));
-        }
-       else if(payload.containsKey("wzrk_dl") && (payload.containsValue("ctdl://ct.com/home/updateEventProp") || payload.containsValue("ctdl:\\/\\/ct.com\\/home\\/updateEventProp"))){
-           pushPropUpdate = new HashMap<String, Object>();
-           pushPropUpdate.put("Action", "Home Page Load");
-           pushPropUpdate.put("PushDataPassed", "true");
-           cleverTapAPI.pushEvent("HomeLoadEvent", pushPropUpdate);
-           startActivity(new Intent(getApplicationContext(),Homepage.class));
-       }
+//    @Override
+//    public void onNotificationClickedPayloadReceived(HashMap<String, Object> payload) {
+//        System.out.println("CT_payload: "+payload.toString());
+//        Log.d(Tag50, payload.toString());
+//        Toast.makeText(getApplicationContext(), "Notif Payload"+payload.toString(), Toast.LENGTH_SHORT).show();
+//        notificationpayload.setText(payload.toString());
+//        cleverTapAPI.pushNotificationClickedEvent(getIntent().getExtras());
+//        //String deplink= (String) payload.get("wzrk_dl");
+//        /*if(deplink.equals("ctdl://ct.com/deep")){
+//            startActivity(new Intent(getApplicationContext(),DeeplinkActivity.class));
+//        }*/
+//        //Log.d(Tag2,deplink);
+//        //Log.d(Tag2, String.valueOf(payload.containsValue("ctdl:\\/\\/ct.com\\/home")));
+//       if(payload.containsKey("wzrk_dl") && (payload.containsValue("ctdl://ct.com/home") || payload.containsValue("ctdl:\\/\\/ct.com\\/home"))){
+//            startActivity(new Intent(getApplicationContext(),Homepage.class));
+//        }
+//        else if(payload.containsKey("wzrk_dl") && (payload.containsValue("ctdl://ct.com/deep") || payload.containsValue("ctdl:\\/\\/ct.com\\/deep"))){
+//            startActivity(new Intent(getApplicationContext(),DeeplinkActivity.class));
+//        }
+//       else if(payload.containsKey("wzrk_dl") && (payload.containsValue("ctdl://ct.com/home/updateEventProp") || payload.containsValue("ctdl:\\/\\/ct.com\\/home\\/updateEventProp"))){
+//           pushPropUpdate = new HashMap<String, Object>();
+//           pushPropUpdate.put("Action", "Home Page Load");
+//           pushPropUpdate.put("PushDataPassed", "true");
+//           cleverTapAPI.pushEvent("HomeLoadEvent", pushPropUpdate);
+//           startActivity(new Intent(getApplicationContext(),Homepage.class));
+//       }
+//
+//        else{
+//           Toast.makeText(getApplicationContext(), "Not any defined deeplink found in payload", Toast.LENGTH_SHORT).show();
+//       }
+//
+//
+//
+//        //Action button payload check
+//        if(payload.containsKey("wzrk_acts") && payload.get("dl").equals("ctdl://ct.com/home"))
+//        {
+//            Toast.makeText(getApplicationContext(), "Action Deeplink found", Toast.LENGTH_SHORT).show();
+//            startActivity(new Intent(getApplicationContext(),Homepage.class));
+//        }else if(payload.containsKey("wzrk_acts") && payload.get("dl").equals("ctdl://ct.com/deep")){
+//            startActivity(new Intent(getApplicationContext(),DeeplinkActivity.class));
+//        }
+//        else{
+//            Toast.makeText(getApplicationContext(), "Not any defined deeplink found in Notification Action payload", Toast.LENGTH_SHORT).show();
+//        }
+//
+//    }*/
 
-        else{
-           Toast.makeText(getApplicationContext(), "Not any defined deeplink found in payload", Toast.LENGTH_SHORT).show();
-       }
-
-
-
-        //Action button payload check
-        if(payload.containsKey("wzrk_acts") && payload.get("dl").equals("ctdl://ct.com/home"))
-        {
-            Toast.makeText(getApplicationContext(), "Action Deeplink found", Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(getApplicationContext(),Homepage.class));
-        }else if(payload.containsKey("wzrk_acts") && payload.get("dl").equals("ctdl://ct.com/deep")){
-            startActivity(new Intent(getApplicationContext(),DeeplinkActivity.class));
-        }
-        else{
-            Toast.makeText(getApplicationContext(), "Not any defined deeplink found in Notification Action payload", Toast.LENGTH_SHORT).show();
-        }
-
-    }
+//    @Override
+//    public void onNotificationClickedPayloadReceived(HashMap<String, Object> payload) {
+//        System.out.println("my_payload "+payload.toString());
+//        Toast.makeText(getApplicationContext(), "Callback: "+payload.toString(), Toast.LENGTH_SHORT).show();
+//        Log.d("payload",payload.toString());
+//    }
 
 
 
@@ -608,15 +664,15 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
 
     }
 
-
     @Override
     protected void onNewIntent(Intent intent) {
-
+        Log.d("Test11","onNewIntentCalled");
         super.onNewIntent(intent);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            cleverTapAPI.pushNotificationClickedEvent(intent.getExtras());
+            cleverTapAPI.pushNotificationClickedEvent(intent.getBundleExtra("bundle"));
         }
 
+}
         //Bundle bundle=intent.getBundleExtra("bundle");
        // System.out.println("Bundle= "+bundle.toString());
 
@@ -624,7 +680,7 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
 
 
 
-    }
+    //}
 
     @Override
     protected void onResume() {
@@ -656,19 +712,41 @@ public class MainActivity extends AppCompatActivity implements CTPushNotificatio
         Toast.makeText(this, "Before if condition", Toast.LENGTH_SHORT).show();
             if (payload!=null){
                 Toast.makeText(this, "Payload: "+payload.toString(), Toast.LENGTH_SHORT).show();
-                System.out.println("In-App Payload: "+payload.toString());
                 Log.d(Tag10,payload.toString());
-                Log.i("InApp Callback",payload.toString());
+                if(payload.containsKey("tel")){
+                    Toast.makeText(this, "Tel found: "+payload.get("tel").toString(), Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(Intent.ACTION_DIAL);
+                    intent.setData(Uri.parse("tel:"+payload.get("tel")));
+                    startActivity(intent);
+                }
             }
+        if(payload.containsKey("user_prop") && payload.containsValue("10")){
+            linearLayout.setBackgroundColor(Integer.parseInt("#0000FF"));
+        }
     }
 
-   @Override
-    public void onInboxItemClicked(CTInboxMessage message) {
-        if(message != null){
-            //Read the values
-            Toast.makeText(this, "Inbox Data "+message.getCarouselImages().toString(), Toast.LENGTH_SHORT).show();
-            System.out.println("InboxData: "+message.getCarouselImages().toString());
+//   @Override
+//    public void onInboxItemClicked(CTInboxMessage message) {
+//        if(message != null){
+//            //Read the values
+//            Toast.makeText(this, "Inbox Data "+message.getCarouselImages().toString(), Toast.LENGTH_SHORT).show();
+//            System.out.println("InboxData: "+message.getCarouselImages().toString());
+//        }
+//    }
+
+    @Override
+    public void onDisplayUnitsLoaded(ArrayList<CleverTapDisplayUnit> units) {
+        for (int i = 0; i <units.size() ; i++) {
+            CleverTapDisplayUnit unit = units.get(i);
+            prepareDisplayView(unit);
         }
+    }
+
+    private void prepareDisplayView(CleverTapDisplayUnit unit) {
+        Log.d("DisplayUnitTest",unit.toString());
+
+        String allunits= String.valueOf(CleverTapAPI.getDefaultInstance(this).getAllDisplayUnits());
+        Log.d("allunits",allunits);
     }
 
 

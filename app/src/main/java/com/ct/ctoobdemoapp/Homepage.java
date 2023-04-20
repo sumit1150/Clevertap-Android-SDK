@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -85,6 +86,36 @@ public class Homepage extends AppCompatActivity implements CTInboxListener, Inbo
                 //Initialize the inbox and wait for callbacks on overridden methods
                 cleverTapAPI.initializeInbox();
             }
+            //Charged event
+
+        HashMap<String, Object> chargeDetails = new HashMap<String, Object>();
+        chargeDetails.put("Amount", 300);
+        chargeDetails.put("Payment Mode", "Credit card");
+        chargeDetails.put("Charged ID", 24052013);
+
+        HashMap<String, Object> item1 = new HashMap<String, Object>();
+        item1.put("Product category", "books");
+        item1.put("Book name", "The Millionaire next door");
+        item1.put("Quantity", 1);
+        item1.put("P1",2000);
+
+        HashMap<String, Object> item2 = new HashMap<String, Object>();
+        item2.put("Product category", "books");
+        item2.put("Book name", "Achieving inner zen");
+        item2.put("Quantity", 1);
+        item1.put("P1",1000);
+
+        ArrayList<HashMap<String, Object>> items = new ArrayList<HashMap<String, Object>>();
+        items.add(item1);
+        items.add(item2);
+
+        try {
+            cleverTapAPI.pushChargedEvent(chargeDetails, items);
+        } catch (Exception e) {
+            Toast.makeText(this, "Exception occurs"+e.toString(), Toast.LENGTH_SHORT).show();
+            // You have to specify the first parameter to push()
+            // as CleverTapAPI.CHARGED_EVENT
+        }
 
 
             //Log.d(Tag5, String.valueOf(cleverTapAPI.getAllInboxMessages()));
@@ -142,9 +173,16 @@ public class Homepage extends AppCompatActivity implements CTInboxListener, Inbo
                 else if(ab_test_String.equals("Blue")){
                     productConfigABResult.setBackgroundColor(Color.parseColor("0000FF"));
                     productConfigABResult.setText("Product Config Results: Config AB Test Object Found");
+                    Toast.makeText(Homepage.this, "Blue found", Toast.LENGTH_SHORT).show();
                 }else if(ab_test_String.equals("Green")){
                     productConfigABResult.setBackgroundColor(Color.parseColor("00FF00"));
                     productConfigABResult.setText("Product Config Results: Config AB Test Object Found");
+                    Toast.makeText(Homepage.this, "Green found", Toast.LENGTH_SHORT).show();
+                }
+                else if(ab_test_String.equals("Gray")){
+                    productConfigABResult.setBackgroundColor(Color.parseColor("00FFFF"));
+                    productConfigABResult.setText("Product Config Results: Config AB Test Object Found");
+                    Toast.makeText(Homepage.this, "Gray found", Toast.LENGTH_SHORT).show();
                 }
                 else{
                     productConfigResults.setText("Product Config Results: Config Object Not Found");
@@ -325,5 +363,11 @@ public class Homepage extends AppCompatActivity implements CTInboxListener, Inbo
 
 
     }
-
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            CleverTapAPI.getDefaultInstance(getApplicationContext()).pushNotificationClickedEvent(intent.getExtras());
+        }}
 }
+
